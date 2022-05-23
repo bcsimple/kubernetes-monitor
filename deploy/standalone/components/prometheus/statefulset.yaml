@@ -78,7 +78,7 @@ spec:
             ##prometheus 记录规则文件路径
             - mountPath: "/etc/prometheus/prometheus-records.yaml"
               subPath: prometheus-records.yaml
-              name: records-volum
+              name: records-volume
             ## etcd 证书文件
             - name: secret-volume
               mountPath: "/etc/prometheus/secrets/etcd-certs"
