@@ -28,7 +28,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: prometheus-server-configmap-reload
-          image: "tosimple/configmap-reload:v0.7.1"
+          image: tosimple/configmap-reload:v0.7.1
           imagePullPolicy: "IfNotPresent"
           command:
             - "/configmap-reload"

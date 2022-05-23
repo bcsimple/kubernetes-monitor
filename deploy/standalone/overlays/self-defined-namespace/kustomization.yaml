@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+components:
+  - ../../components/grafana/
+  - ../../components/kube-state-metrics
+  - ../../components/node_exporter
+  - ../../components/prometheus
+namespace: monitoring
+
+images:
+  - name: grafana/grafana-enterprise
+    newTag: 1.0.1
+  - name: tosimple/kube-state-metrics
+    newTag: v2.4.2
+  - name: prom/node-exporter
+    newTag: v1.3.1
+  - name: tosimple/configmap-reload
+    newTag: v0.7.1
+  - name: prom/prometheus
+    newTag: v2.35.0
+
+

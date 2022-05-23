@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kube-system
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1
+        value: 
+          name: NFS_SERVER
+          value: 10.0.0.1  #修改为nfs server地址 
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2
+        value:
+          name: NFS_PATH
+          value: /opt/nfs  #修改为nfs path地址
+      - op: replace
+        path: /spec/template/spec/volumes/0/nfs
+        value:
+          server: 10.0.0.1  #修改为nfs server地址
+          path: /opt/nfs    #修改为nfs path地址
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+resources:
+  - deployment.yaml
+  - rbac.yaml
+  - storageclass.yaml
