@@ -2,6 +2,22 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
 namespace: kube-system
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: prometheus-config
+    files:
+      - prometheus.yaml=prometheus-config-configmap.yaml
+    behavior: create
+  - name: prometheus-alerts
+    files:
+      - prometheus-alerts.yaml=prometheus-alerts-configmap.yaml
+    behavior: create
+  - name: prometheus-records
+    files:
+      - prometheus-records.yaml=prometheus-records-configmap.yaml
+    behavior: create
+
 
 resources:
   - cluster-role-binding.yaml

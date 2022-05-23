@@ -21,8 +21,6 @@ spec:
         app.kubernetes.io/component: exporter
         app.kubernetes.io/name: prometheus-server
         app.kubernetes.io/version: v2.35.0
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
       priorityClassName: system-cluster-critical
       dnsPolicy: ClusterFirstWithHostNet
@@ -121,7 +119,7 @@ spec:
         - name: records-volume
           configMap:
             name: prometheus-records
-        - name: alert-volume
+        - name: alerts-volume
           configMap:
             name: prometheus-alerts
         - name: secret-volume
