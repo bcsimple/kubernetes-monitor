@@ -8,7 +8,7 @@ resources:
   - cluster-role.yaml
   - service-account.yaml
   - service.yaml
-  - statefulset.yaml.yaml
+  - statefulset.yaml
   - prometheus-alerts-configmap.yaml
   - prometheus-config-configmap.yaml
   - prometheus-records-configmap.yaml
