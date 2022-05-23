@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: kube-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-provisioner  #使用的是 nfs-provisioner
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kube-system
+
+resources:
+  - cluster-role-binding.yaml
+  - cluster-role.yaml
+  - service-account.yaml
+  - service.yaml
+  - statefulset.yaml.yaml
+  - prometheus-alerts-configmap.yaml
+  - prometheus-config-configmap.yaml
+  - prometheus-records-configmap.yaml

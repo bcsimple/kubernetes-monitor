@@ -1,0 +1,40 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nfs-client-provisioner
+  labels:
+    app.kubernetes.io/name: nfs-provisioner
+    app.kubernetes.io/version: v4.0.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+        app.kubernetes.io/name: nfs-provisioner
+        app.kubernetes.io/version: v4.0.1
+    spec:
+      serviceAccountName: nfs-client-provisioner
+      containers:
+        - name: nfs-client-provisioner
+          image: tosimple/nfs-subdir-external-provisioner:v4.0.1
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: k8s-sigs.io/nfs-subdir-external-provisioner
+            - name: NFS_SERVER
+              value: <YOUR NFS SERVER HOSTNAME>  #修改为nfs server地址
+            - name: NFS_PATH
+              value: /opt/nfs  #修改为nfs path地址
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: <YOUR NFS SERVER HOSTNAME>  #修改为nfs server地址
+            path: /opt/nfs     #修改为nfs path地址

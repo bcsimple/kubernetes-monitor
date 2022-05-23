@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: prometheus-server
+    app.kubernetes.io/version: v2.35.0
+spec:
+  serviceName: "prometheus"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-server
+      app.kubernetes.io/version: v2.35.0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: exporter
+        app.kubernetes.io/name: prometheus-server
+        app.kubernetes.io/version: v2.35.0
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      priorityClassName: system-cluster-critical
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: prometheus-server-configmap-reload
+          image: "tosimple/configmap-reload:v0.7.1"
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - "/configmap-reload"
+          args:
+            - --volume-dir=/etc/config
+            - --webhook-url=http://localhost:9090/-/reload
+            - --webhook-retries=2
+            - --webhook-method=POST
+            - --webhook-status-code=200
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+              readOnly: true
+          resources:
+            limits:
+              cpu: 10m
+              memory: 10Mi
+            requests:
+              cpu: 10m
+              memory: 10Mi
+        - image: prom/prometheus:v2.35.0
+          imagePullPolicy: IfNotPresent
+          name: prometheus
+          command:
+            - "/bin/prometheus"
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/data/prometheus"
+            - "--storage.tsdb.retention=180d"
+            - "--web.console.libraries=/etc/prometheus/console_libraries"
+            - "--web.console.templates=/etc/prometheus/consoles"
+            - "--web.enable-lifecycle"
+            - "--web.listen-address=0.0.0.0:9090"
+          ports:
+            - containerPort: 8091
+              protocol: TCP
+          volumeMounts:
+            ##prometheus 数据存储路径
+            - mountPath: "/data/prometheus"
+              name: prometheus-data
+            ##prometheus 配置文件文件路径
+            - mountPath: "/etc/prometheus/prometheus.yaml"
+              subPath: prometheus.yaml
+              name: config-volume
+            ##prometheus 告警规则文件路径
+            - mountPath: "/etc/prometheus/prometheus-alerts.yaml"
+              subPath: prometheus-alerts.yaml
+              name: alerts-volume
+            ##prometheus 记录规则文件路径
+            - mountPath: "/etc/prometheus/prometheus-records.yaml"
+              subPath: prometheus-records.yaml
+              name: records-volum
+            ## etcd 证书文件
+            - name: secret-volume
+              mountPath: "/etc/prometheus/secrets/etcd-certs"
+              #readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 1000m
+              memory: 2500Mi
+          securityContext:
+            runAsUser: 65534
+            privileged: true
+      serviceAccountName: prometheus
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+        - name: records-volume
+          configMap:
+            name: prometheus-records
+        - name: alert-volume
+          configMap:
+            name: prometheus-alerts
+        - name: secret-volume
+          secret:
+            secretName: etcd-certs
+  volumeClaimTemplates:
+    - metadata:
+        name: prometheus-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "nfs-provisioner"
+        resources:
+          requests:
+            storage: 10Gi
